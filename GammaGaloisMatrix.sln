@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28922.388
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GammaGaloisMatrix", "GammaGaloisMatrix\GammaGaloisMatrix.csproj", "{84F79FE6-76A6-46BA-B1B3-F4FB67B082EA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{84F79FE6-76A6-46BA-B1B3-F4FB67B082EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84F79FE6-76A6-46BA-B1B3-F4FB67B082EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84F79FE6-76A6-46BA-B1B3-F4FB67B082EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84F79FE6-76A6-46BA-B1B3-F4FB67B082EA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1E899BF2-697D-4FA9-94C8-21C8389D530B}
+	EndGlobalSection
+EndGlobal
