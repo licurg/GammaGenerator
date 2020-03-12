@@ -24,6 +24,66 @@ namespace GammaGaloisMatrix
         public string g1 { get; set; }
         public string g2 { get; set; }
     }
+    public class RandomSequence
+    {
+        public long Vector { get; set; }
+        public long Polinom { get; set; }
+        private int Order { get; set; }
+
+        List<long> Sequenc = new List<long>();
+        public RandomSequence(long polinom, long vector)
+        {
+            if (PowerPolinom(polinom) - PowerPolinom(vector) < 1)
+                throw new ArgumentException(nameof(vector), "Vector сan't be greater than or equal to polinom.");
+            Polinom = Trim(polinom);
+            Vector = vector;
+            Order = PowerPolinom(polinom) - 1;
+        }
+        public void SequenceGalua()
+        {
+            Sequenc.Clear();
+            long _vector = 0;
+            long maxVector = (long)Math.Pow(2, Order) - 1;
+            for (int i = 0; i < Math.Pow(2, Order + 1) - 1; i++)
+            {
+                if (Vector > maxVector)
+                    Vector = Polinom ^ TrimLeft(Vector);
+                Vector = (Vector << 1) ^ GetBit(_vector, Order);
+                _vector = Vector;
+                Sequenc.Add(Vector);
+            }
+        }
+        private long TrimLeft(long value)
+        {
+            return SetBit(value, PowerPolinom(value));
+        }
+        private long Trim(long polinom)
+        {
+            polinom >>= 1;
+            polinom = SetBit(polinom, PowerPolinom(polinom));
+            return polinom;
+        }
+        private long SetBit(long value, int bit)
+        {
+            return value ^ (1L << bit);
+        }
+        private long GetBit(long value, int bit)
+        {
+            return value >> bit & 1;
+        }
+        private int PowerPolinom(long polinom) => BitOll(polinom) - 1;
+
+        private int BitOll(long value)
+        {
+            int res = 0;
+            while (value != 0)
+            {
+                res++;
+                value >>= 1;
+            }
+            return res;
+        }
+    }
     public class RelayCommand : ICommand
     {
         private Action<object> execute;
