@@ -26,9 +26,9 @@ namespace GammaGaloisMatrix
     }
     public class RandomSequence
     {
-        public long Vector { get; set; }
-        public long Polinom { get; set; }
-        private int Order { get; set; }
+        public long Vector { get; private set; }
+        public long Polinom { get; }
+        private int Order { get; }
 
         public List<ulong> Sequenc = new List<ulong>();
         public RandomSequence(long polinom, long vector)
@@ -42,14 +42,13 @@ namespace GammaGaloisMatrix
         public void SequenceGalua()
         {
             Sequenc.Clear();
-            long _vector = 0;
             long maxVector = (long)Math.Pow(2, Order) - 1;
             for (int i = 0; i < Math.Pow(2, Order + 1) - 1; i++)
             {
+                long _vector = Vector;
                 if (Vector > maxVector)
                     Vector = Polinom ^ TrimLeft(Vector);
                 Vector = (Vector << 1) ^ GetBit(_vector, Order);
-                _vector = Vector;
                 Sequenc.Add((ulong)Vector);
             }
         }
