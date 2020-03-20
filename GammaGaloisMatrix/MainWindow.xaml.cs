@@ -30,7 +30,7 @@ namespace GammaGaloisMatrix
         public long Polinom { get; set; }
         private int Order { get; set; }
 
-        List<long> Sequenc = new List<long>();
+        public List<ulong> Sequenc = new List<ulong>();
         public RandomSequence(long polinom, long vector)
         {
             if (PowerPolinom(polinom) - PowerPolinom(vector) < 1)
@@ -50,7 +50,7 @@ namespace GammaGaloisMatrix
                     Vector = Polinom ^ TrimLeft(Vector);
                 Vector = (Vector << 1) ^ GetBit(_vector, Order);
                 _vector = Vector;
-                Sequenc.Add(Vector);
+                Sequenc.Add((ulong)Vector);
             }
         }
         private long TrimLeft(long value)
@@ -120,12 +120,13 @@ namespace GammaGaloisMatrix
         };
 
         private List<ulong> _gamma = new List<ulong>();
+        private List<ulong> _gamma1 = new List<ulong>();
 
         public List<GammaItem> GammaTable
         {
             get
             {
-                return _gamma.Select((x, i) => new GammaItem() { id = i, g1 = GetOutputString(x), g2 = GetOutputString(1) }).ToList();
+                return _gamma.Select((x, i) => new GammaItem() { id = i + 1, g1 = GetOutputString(x), g2 = GetOutputString(_gamma1[i]) }).ToList();
             }
             set
             {
@@ -139,7 +140,7 @@ namespace GammaGaloisMatrix
             {
                 return new List<short>()
                 {
-                    8, 16, 32, 64
+                    8, 16
                 };
             }
         }
@@ -202,7 +203,7 @@ namespace GammaGaloisMatrix
             }
         }
 
-        private BigInteger _polynomial = 499;
+        private BigInteger _polynomial = 285;
         public BigInteger Polynomial
         {
             get {
@@ -228,7 +229,7 @@ namespace GammaGaloisMatrix
             }
         }
 
-        private BigInteger _oe = 255;
+        private BigInteger _oe = 2;
         public BigInteger OE
         {
             get
@@ -383,7 +384,21 @@ namespace GammaGaloisMatrix
                 return _Start ?? (_Start = new RelayCommand(command => {
                     Task.Run(() =>
                     {
-                        
+                        if (PolynomialString == "")
+                        {
+                            MessageBox.Show("Не задано значение полинома!", "Что-то не так!", MessageBoxButton.OK, MessageBoxImage.Error);
+                            return;
+                        }
+                        if (OEString == "")
+                        {
+                            MessageBox.Show("Не задано значение ОЭ!", "Что-то не так!", MessageBoxButton.OK, MessageBoxImage.Error);
+                            return;
+                        }
+                        if (VIString == "")
+                        {
+                            MessageBox.Show("Не задано значение ВИ!", "Что-то не так!", MessageBoxButton.OK, MessageBoxImage.Error);
+                            return;
+                        }
                         ulong[] matrix = new ulong[Factor];
                         matrix[0] = (ulong)OE;
                         ulong max = 0xFFFFFFFFFFFFFFFF;
@@ -423,6 +438,13 @@ namespace GammaGaloisMatrix
                             vector = g;
                             _gamma.Add(vector);
                         }
+
+                        RandomSequence randomSequence = new RandomSequence((long)Polynomial, (long)VI);
+                        randomSequence.SequenceGalua();
+
+                        _gamma1.Clear();
+                        _gamma1.AddRange(randomSequence.Sequenc);
+                        
                         GammaTable = null;
                     });
                 }, command => true));
@@ -580,6 +602,16 @@ namespace GammaGaloisMatrix
         {
             InitializeComponent();
             this.DataContext = new MainVM();
+        }
+
+        private void DataGrid_LoadingRow(object sender, DataGridRowEventArgs e)
+        {
+            
+        }
+
+        private void DataGrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
+        {
+
         }
     }
 }
