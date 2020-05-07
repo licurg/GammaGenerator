@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GammaGaloisMatrix"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Проверка рекуррентных формул классических Галуа генераторов" Height="450" Width="800">
     <Grid Margin="5">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -13,9 +13,8 @@
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="3*"/>
-                <RowDefinition Height="*"/>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="3*"/>
                 <RowDefinition Height="*"/>
@@ -23,18 +22,29 @@
                 <RowDefinition Height="3*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
+			<!-- Matrix Type -->
+			<Label Grid.Row="0" Content="Тип матрицы:" VerticalAlignment="Bottom" FontWeight="Bold"/>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <RadioButton Grid.Column="0" GroupName="Matrix" Content="G" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" CommandParameter="G" Command="{Binding SetMatrix}" IsChecked="True"/>
+                <RadioButton Grid.Column="1" GroupName="Matrix" Content="F" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" CommandParameter="F" Command="{Binding SetMatrix}"/>
+                <RadioButton Grid.Column="2" GroupName="Matrix" Content="G*" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" CommandParameter="G*" Command="{Binding SetMatrix}"/>
+                <RadioButton Grid.Column="3" GroupName="Matrix" Content="F*" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" CommandParameter="F*" Command="{Binding SetMatrix}"/>
+            </Grid>
             <!-- Labels -->
-            <Label Content="Неприводимый полином:" FontWeight="Bold"/>
-            <Label Grid.Row="3" Content="Примитивный ОЭ:" FontWeight="Bold"/>
-            <Label Grid.Row="6" Content="Вектор инициализации:" FontWeight="Bold"/>
+            <Label Grid.Row="2" Content="Примитивный полином:" VerticalAlignment="Bottom" FontWeight="Bold"/>
+            <Label Grid.Row="5" Content="Вектор инициализации:" VerticalAlignment="Bottom" FontWeight="Bold"/>
             <!-- Inputs -->
-            <TextBox Grid.Row="1" TextWrapping="Wrap" Margin="2" Text="{Binding PolynomialString}"/>
-            <TextBox Grid.Row="4" TextWrapping="Wrap" Margin="2" Text="{Binding OEString}"/>
-            <TextBox Grid.Row="7" TextWrapping="Wrap" Margin="2" Text="{Binding VIString}"/>
+            <TextBox Grid.Row="3" TextWrapping="Wrap" Margin="2" Text="{Binding PolynomialString}"/>
+            <TextBox Grid.Row="6" TextWrapping="Wrap" Margin="2" Text="{Binding VIString}"/>
             <!-- Buttons -->
-            <Button Command="{Binding GenPolynomial}" Grid.Row="2" Content="Згенерировать НП" Margin="2" Cursor="Hand"/>
-            <Button Command="{Binding GenOE}" Grid.Row="5" Content="Згенерировать ОЭ" Margin="2" Cursor="Hand"/>
-            <Button Command="{Binding GenVI}" Grid.Row="8" Content="Згенерировать ВИ" Margin="2" Cursor="Hand"/>
+            <Button Command="{Binding GenPolynomial}" Grid.Row="4" Content="Сгенерировать ПрП" Margin="2" Cursor="Hand"/>
+            <Button Command="{Binding GenVI}" Grid.Row="7" Content="Сгенерировать ВИ" Margin="2" Cursor="Hand"/>
         </Grid>
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>

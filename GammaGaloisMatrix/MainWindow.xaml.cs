@@ -125,7 +125,7 @@ namespace GammaGaloisMatrix
         {
             get
             {
-                return _gamma.Select((x, i) => new GammaItem() { id = i + 1, g1 = GetOutputString(x), g2 = GetOutputString(_gamma1[i]) }).ToList();
+                return _gamma.Select((x, i) => new GammaItem() { id = i, g1 = GetOutputString(x), g2 = GetOutputString(_gamma1[i]) }).ToList();
             }
             set
             {
@@ -269,6 +269,35 @@ namespace GammaGaloisMatrix
             }
         }
 
+        private int Matrix = 0;
+
+        private List<ulong> TransposeMatrixR(List<ulong> matrix)
+        {
+            string[] tMatrix = new string[matrix.Count];
+            for (int i = (matrix.Count - 1); i >= 0; i--)
+            {
+                string bits = Convert.ToString((long)matrix[i], 2).PadLeft(matrix.Count, '0');
+                for (int n = 0; n < matrix.Count; n++)
+                {
+                    tMatrix[n] += bits[(matrix.Count - 1) - n];
+                }
+            }
+            return tMatrix.ToList().Select(x => Convert.ToUInt64(x, 2)).ToList();
+        }
+        private List<ulong> TransposeMatrix(List<ulong> A)
+        {
+            string[] tMatrix = new string[A.Count];
+            for (int i = 0; i < A.Count; i++)
+            {
+                string bits = Convert.ToString((long)A[i], 2).PadLeft(A.Count, '0');
+                for (int n = 0; n < A.Count; n++)
+                {
+                    tMatrix[n] += bits[n];
+                }
+            }
+            return tMatrix.ToList().Select(x => Convert.ToUInt64(x, 2)).ToList();
+        }
+
         private RelayCommand _GenPolynomial;
         public RelayCommand GenPolynomial
         {
@@ -298,7 +327,17 @@ namespace GammaGaloisMatrix
                                 res = ModMult(a, b, f);
                             }
 
-                            if (i == Factor && res == 1)
+                            int x = 1;
+                            int limit = (int)Math.Pow(2, Factor) - 1;
+                            BigInteger multipler = 0b10;
+                            for (; x < limit; x++)
+                            {
+                                multipler = ModMult(multipler, 0b10, f);
+                                if (multipler == 1)
+                                    break;
+                            }
+
+                            if ((i == Factor && res == 1) && (x == (limit - 1) && multipler == 1))
                             {
                                 PolynomialString = GetOutputString(f);
                             }
@@ -375,6 +414,33 @@ namespace GammaGaloisMatrix
             }
         }
 
+        private RelayCommand _SetMatrix;
+        public RelayCommand SetMatrix
+        {
+            get
+            {
+                return _SetMatrix ?? (_SetMatrix = new RelayCommand(command => {
+                    Task.Run(() =>
+                    {
+                        switch ((string)command) {
+                            case "G":
+                                Matrix = 0;
+                                break;
+                            case "F":
+                                Matrix = 1;
+                                break;
+                            case "G*":
+                                Matrix = 2;
+                                break;
+                            case "F*":
+                                Matrix = 3;
+                                break;
+                        }
+                    });
+                }, command => true));
+            }
+        }
+
         private RelayCommand _Start;
         public RelayCommand Start
         {
@@ -421,9 +487,23 @@ namespace GammaGaloisMatrix
                             matrix[i] = (ulong)a;
                         }
 
+                        if (Matrix == 1)
+                        {
+                            matrix = TransposeMatrix(matrix.ToList()).ToArray();
+                        }
+                        else if (Matrix == 2)
+                        {
+                            matrix = TransposeMatrixR(matrix.ToList()).ToArray();
+                        }
+                        else if (Matrix == 3)
+                        {
+                            matrix = TransposeMatrixR(TransposeMatrix(matrix.ToList())).ToArray();
+                        }
+
                         ulong vector = (ulong)VI;
                         ulong g = 0;
                         _gamma.Clear();
+                        _gamma.Add((ulong)VI);
 
                         while (g != VI)
                         {
@@ -442,6 +522,7 @@ namespace GammaGaloisMatrix
                         randomSequence.SequenceGalua();
 
                         _gamma1.Clear();
+                        _gamma1.Add((ulong)VI);
                         _gamma1.AddRange(randomSequence.Sequenc);
                         
                         GammaTable = null;
