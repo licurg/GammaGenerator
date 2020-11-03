@@ -24,33 +24,126 @@ namespace GammaGaloisMatrix
         public string g1 { get; set; }
         public string g2 { get; set; }
     }
+    public enum TypeMatrix : short
+    {
+        Galua,
+        Fibonacci,
+        GaluaT,
+        FibonacciT,
+        ReverseGalua,
+        ReverseFibonacci,
+        ReverseGaluaGaluaT,
+        ReverseFibonacciT
+    }
     public class RandomSequence
     {
         public long Vector { get; private set; }
         public long Polinom { get; }
-        private int Order { get; }
+        public int Power { get; }
 
-        public List<ulong> Sequenc = new List<ulong>();
+        public List<ulong> Sequence = new List<ulong>();
+        private List<Action> listActions;
+
         public RandomSequence(long polinom, long vector)
         {
             if (PowerPolinom(polinom) - PowerPolinom(vector) < 1)
                 throw new ArgumentException(nameof(vector), "Vector сan't be greater than or equal to polinom.");
-            Polinom = Trim(polinom);
+            Polinom = polinom;
             Vector = vector;
-            Order = PowerPolinom(polinom) - 1;
-        }
-        public void SequenceGalua()
-        {
-            Sequenc.Clear();
-            long maxVector = (long)Math.Pow(2, Order) - 1;
-            for (int i = 0; i < Math.Pow(2, Order + 1) - 1; i++)
+            Power = PowerPolinom(polinom);
+            listActions = new List<Action>
             {
-                long _vector = Vector;
-                if (Vector > maxVector)
-                    Vector = Polinom ^ TrimLeft(Vector);
-                Vector = (Vector << 1) ^ GetBit(_vector, Order);
-                Sequenc.Add((ulong)Vector);
+                Galua,
+                Fibonacci,
+                GaluaTransposed,
+                FibonacciTransposed,
+                ReverseGalua,
+                ReverseFibonacci,
+                ReverseGaluaTransposed,
+                ReverseFibonacciTransposed
+            };
+        }
+        public void Generate(TypeMatrix tm)
+        {
+            Sequence.Clear();
+            listActions[(short)tm]?.Invoke();
+        }
+        public void Galua()
+        {
+            long polinom = Trim(Polinom);
+            for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
+            {
+                Vector <<= 1;
+                long leftBit = GetBit(Vector, Power);
+                long _vector = ZeroingBit(Vector, Power);
+                Vector = ((leftBit * polinom << 1) ^ _vector) | leftBit;
+                Sequence.Add((ulong)Vector);
             }
+        }
+        public void Fibonacci()
+        {
+            long polinom = Convert.ToInt64(new string(Convert.ToString(Polinom, 2).Reverse().ToArray()), 2) >> 1;
+            for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
+            {
+                long bit = BitInt(polinom & Vector) & 1;
+                Vector <<= 1;
+                Vector = ZeroingBit(Vector, Power) | bit;
+                Sequence.Add((ulong)Vector);
+            }
+        }
+        public void GaluaTransposed()
+        {
+            long polinom = Polinom;
+            Vector <<= 2;
+            for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
+            {
+                long bit = BitInt(polinom & Vector) & 1;
+                Vector >>= 1;
+                Vector = Vector | (bit << (Power - 1));
+                Sequence.Add((ulong)Vector);
+            }
+        }
+        public void FibonacciTransposed()
+        {
+
+        }
+        public void ReverseGalua()
+        {
+            long polinom = Trim(Polinom);
+            Vector <<= 2;
+            for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
+            {
+                long _vector = Vector >> 1;
+                long Bit = Vector & 1;
+                Vector = ((Bit * polinom) ^ _vector) ^ (Bit << (Power - 1));
+                Sequence.Add((ulong)Vector);
+            }
+        }
+        public void ReverseFibonacci()
+        {
+            long polinom = Convert.ToInt64(new string(Convert.ToString(Polinom, 2).Reverse().ToArray()), 2) >> 1;
+            Vector <<= 2;
+            for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
+            {
+                long bit = BitInt(polinom & Vector) & 1;
+                Vector >>= 1;
+                Vector = Vector | (bit << (Power - 1));
+                Sequence.Add((ulong)Vector);
+            }
+        }
+        public void ReverseGaluaTransposed()
+        {
+            long polinom = Polinom;
+            for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
+            {
+                long bit = BitInt(polinom & Vector) & 1;
+                Vector <<= 1;
+                Vector = ZeroingBit(Vector, Power) | bit;
+            }
+        }
+        public void ReverseFibonacciTransposed()
+        {
+
         }
         private long TrimLeft(long value)
         {
@@ -70,6 +163,10 @@ namespace GammaGaloisMatrix
         {
             return value >> bit & 1;
         }
+        private long ZeroingBit(long value, int bit)
+        {
+            return value & ~(1L << bit);
+        }
         private int PowerPolinom(long polinom) => BitOll(polinom) - 1;
 
         private int BitOll(long value)
@@ -78,6 +175,17 @@ namespace GammaGaloisMatrix
             while (value != 0)
             {
                 res++;
+                value >>= 1;
+            }
+            return res;
+        }
+        private int BitInt(long value)
+        {
+            int res = 0;
+            while (value != 0)
+            {
+                if ((value & 1) == 1)
+                    res++;
                 value >>= 1;
             }
             return res;
@@ -519,11 +627,11 @@ namespace GammaGaloisMatrix
                         }
 
                         RandomSequence randomSequence = new RandomSequence((long)Polynomial, (long)VI);
-                        randomSequence.SequenceGalua();
+                        randomSequence.Generate((TypeMatrix)Matrix);
 
                         _gamma1.Clear();
                         _gamma1.Add((ulong)VI);
-                        _gamma1.AddRange(randomSequence.Sequenc);
+                        _gamma1.AddRange(randomSequence.Sequence);
                         
                         GammaTable = null;
                     });
