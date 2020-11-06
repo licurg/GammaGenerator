@@ -94,7 +94,6 @@ namespace GammaGaloisMatrix
         public void GaluaTransposed()
         {
             long polinom = Polinom;
-            Vector <<= 2;
             for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
             {
                 long bit = BitInt(polinom & Vector) & 1;
@@ -105,12 +104,18 @@ namespace GammaGaloisMatrix
         }
         public void FibonacciTransposed()
         {
-
+            long polinom = Trim(Convert.ToInt64(new string(Convert.ToString(Polinom, 2).Reverse().ToArray()), 2));
+            for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
+            {
+                long _vector = Vector >> 1;
+                long Bit = Vector & 1;
+                Vector = ((Bit * polinom) ^ _vector) ^ (Bit << (Power - 1));
+                Sequence.Add((ulong)Vector);
+            }
         }
         public void ReverseGalua()
         {
             long polinom = Trim(Polinom);
-            Vector <<= 2;
             for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
             {
                 long _vector = Vector >> 1;
@@ -122,7 +127,6 @@ namespace GammaGaloisMatrix
         public void ReverseFibonacci()
         {
             long polinom = Convert.ToInt64(new string(Convert.ToString(Polinom, 2).Reverse().ToArray()), 2) >> 1;
-            Vector <<= 2;
             for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
             {
                 long bit = BitInt(polinom & Vector) & 1;
@@ -139,11 +143,20 @@ namespace GammaGaloisMatrix
                 long bit = BitInt(polinom & Vector) & 1;
                 Vector <<= 1;
                 Vector = ZeroingBit(Vector, Power) | bit;
+                Sequence.Add((ulong)Vector);
             }
         }
         public void ReverseFibonacciTransposed()
         {
-
+            long polinom = Trim(Convert.ToInt64(new string(Convert.ToString(Polinom, 2).Reverse().ToArray()), 2));
+            for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
+            {
+                Vector <<= 1;
+                long leftBit = GetBit(Vector, Power);
+                long _vector = ZeroingBit(Vector, Power);
+                Vector = ((leftBit * polinom << 1) ^ _vector) | leftBit;
+                Sequence.Add((ulong)Vector);
+            }
         }
         private long TrimLeft(long value)
         {
