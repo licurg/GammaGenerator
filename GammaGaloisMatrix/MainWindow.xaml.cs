@@ -85,7 +85,7 @@ namespace GammaGaloisMatrix
             long polinom = Convert.ToInt64(new string(Convert.ToString(Polinom, 2).Reverse().ToArray()), 2) >> 1;
             for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
             {
-                long bit = BitInt(polinom & Vector) & 1;
+                long bit = BitHelp.BitInt(polinom & Vector) & 1;
                 Vector <<= 1;
                 Vector = ZeroingBit(Vector, Power) | bit;
                 Sequence.Add((ulong)Vector);
@@ -96,7 +96,7 @@ namespace GammaGaloisMatrix
             long polinom = Polinom;
             for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
             {
-                long bit = BitInt(polinom & Vector) & 1;
+                long bit = BitHelp.BitInt(polinom & Vector) & 1;
                 Vector >>= 1;
                 Vector = Vector | (bit << (Power - 1));
                 Sequence.Add((ulong)Vector);
@@ -129,7 +129,7 @@ namespace GammaGaloisMatrix
             long polinom = Convert.ToInt64(new string(Convert.ToString(Polinom, 2).Reverse().ToArray()), 2) >> 1;
             for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
             {
-                long bit = BitInt(polinom & Vector) & 1;
+                long bit = BitHelp.BitInt(polinom & Vector) & 1;
                 Vector >>= 1;
                 Vector = Vector | (bit << (Power - 1));
                 Sequence.Add((ulong)Vector);
@@ -140,7 +140,7 @@ namespace GammaGaloisMatrix
             long polinom = Polinom;
             for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
             {
-                long bit = BitInt(polinom & Vector) & 1;
+                long bit = BitHelp.BitInt(polinom & Vector) & 1;
                 Vector <<= 1;
                 Vector = ZeroingBit(Vector, Power) | bit;
                 Sequence.Add((ulong)Vector);
@@ -180,9 +180,13 @@ namespace GammaGaloisMatrix
         {
             return value & ~(1L << bit);
         }
-        private int PowerPolinom(long polinom) => BitOll(polinom) - 1;
+        private int PowerPolinom(long polinom) => BitHelp.BitOll(polinom) - 1;
 
-        private int BitOll(long value)
+    
+    }
+    public static class BitHelp
+    {
+       public static int BitOll(long value)
         {
             int res = 0;
             while (value != 0)
@@ -192,7 +196,7 @@ namespace GammaGaloisMatrix
             }
             return res;
         }
-        private int BitInt(long value)
+        public static int BitInt(long value)
         {
             int res = 0;
             while (value != 0)
@@ -202,6 +206,7 @@ namespace GammaGaloisMatrix
                 value >>= 1;
             }
             return res;
+
         }
     }
     public class RelayCommand : ICommand
@@ -427,43 +432,68 @@ namespace GammaGaloisMatrix
                 return _GenPolynomial ?? (_GenPolynomial = new RelayCommand(command => {
                     Task.Run(() =>
                     {
-                        CheckPolynomial:
-                        int weight = new Random().Next(3, Factor + 1);
-                        string polynomialString = "1" + new String(new String('1', weight - 2).PadLeft(Factor - 1, '0').ToCharArray().OrderBy(x => Guid.NewGuid()).ToArray()) + "1";
-                        var condition = weight > 0 ? polynomialString.Count(x => x == '1') == weight : polynomialString.Count(x => x == '1') % 2 != 0;
-                        if (!condition) goto CheckPolynomial;
-                        else
+                        long min = (long)Math.Pow(2, (int)Factor) + 1;
+                        long max = min * 2;
+                        int Bits = BitHelp.BitOll(min);
+                        Bits = BitHelp.BitOll((long)(Math.Pow(2, BitHelp.BitOll(min) - 1))) -2;
+                        while (true) 
                         {
-                            BigInteger f = BinToDec(polynomialString);
-                            BigInteger a = 0b10;
-                            BigInteger b = 0b100;
-                            int i = 2;
-
-                            var res = ModMult(a, b, f);
-                            while (res != 1 && i <= Factor)
+                            long i = LongRandom(min, max);
+                            if ((BitHelp.BitInt(i) & 1) == 1)
                             {
-                                i += 1;
-                                a = res;
-                                b = res << 1;
-                                res = ModMult(a, b, f);
-                            }
-
-                            int x = 1;
-                            int limit = (int)Math.Pow(2, Factor) - 1;
-                            BigInteger multipler = 0b10;
-                            for (; x < limit; x++)
-                            {
-                                multipler = ModMult(multipler, 0b10, f);
-                                if (multipler == 1)
+                                int Res = 2;
+                                long _Res = 2;
+                                _Res = Div2(_Res, _Res << 1, i, Bits);
+                                while (_Res > 1 && Res < Factor)
+                                {
+                                    Res += 1;
+                                    _Res = Div2(_Res, _Res << 1, i, Bits);
+                                }
+                                if (_Res == 1 && Res == Factor)
+                                {
+                                    PolynomialString = PolynomialString = GetOutputString(i);
                                     break;
+                                }
                             }
-
-                            if ((i == Factor && res == 1) && (x == (limit - 1) && multipler == 1))
-                            {
-                                PolynomialString = GetOutputString(f);
-                            }
-                            else goto CheckPolynomial;
                         }
+
+                        /* CheckPolynomial:
+                         int weight = new Random().Next(3, Factor + 1);
+                         string polynomialString = "1" + new String(new String('1', weight - 2).PadLeft(Factor - 1, '0').ToCharArray().OrderBy(x => Guid.NewGuid()).ToArray()) + "1";
+                         var condition = weight > 0 ? polynomialString.Count(x => x == '1') == weight : polynomialString.Count(x => x == '1') % 2 != 0;
+                         if (!condition) goto CheckPolynomial;
+                         else
+                         {
+                             BigInteger f = BinToDec(polynomialString);
+                             BigInteger a = 0b10;
+                             BigInteger b = 0b100;
+                             int i = 2;
+
+                             var res = ModMult(a, b, f);
+                             while (res != 1 && i <= Factor)
+                             {
+                                 i += 1;
+                                 a = res;
+                                 b = res << 1;
+                                 res = ModMult(a, b, f);
+                             }
+
+                             int x = 1;
+                             int limit = (int)Math.Pow(2, Factor) - 1;
+                             BigInteger multipler = 0b10;
+                             for (; x < limit; x++)
+                             {
+                                 multipler = ModMult(multipler, 0b10, f);
+                                 if (multipler == 1)
+                                     break;
+                             }
+
+                             if ((i == Factor && res == 1) && (x == (limit - 1) && multipler == 1))
+                             {
+                                 PolynomialString = GetOutputString(f);
+                             }
+                             else goto CheckPolynomial;
+                         }*/
                     });
                 }, command => true));
             }
@@ -755,7 +785,25 @@ namespace GammaGaloisMatrix
         {
             return bigint.ToString("X").TrimStart('0');
         }
-
+        Random rnd = new Random();
+        public long LongRandom(long min, long max)
+        {
+            byte[] buf = new byte[8];
+            rnd.NextBytes(buf);
+            long longRand = BitConverter.ToInt64(buf, 0);
+            return (Math.Abs(longRand % (max - min)) + min);
+        }
+        private long Div2(long a, long b, long i, int Bits)
+        {
+            long p = 0;
+            while (b > 0)
+            {
+                p ^= -(b & 1) & a;
+                a = (a << 1) ^ (i & -((a >> Bits) & 1));
+                b >>= 1;
+            }
+            return p;
+        }
         private BigInteger ModPower(BigInteger a, BigInteger k, BigInteger mod)
         {
             BigInteger res = 1;
