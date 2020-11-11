@@ -126,7 +126,7 @@ namespace GammaGaloisMatrix
         }
         public void ReverseFibonacci()
         {
-            long polinom = Convert.ToInt64(new string(Convert.ToString(Polinom, 2).Reverse().ToArray()), 2) >> 1;
+            long polinom = Convert.ToInt64(new string(Convert.ToString(Polinom, 2).Reverse().ToArray()), 2);
             for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
             {
                 long bit = BitHelp.BitInt(polinom & Vector) & 1;
@@ -137,7 +137,8 @@ namespace GammaGaloisMatrix
         }
         public void ReverseGaluaTransposed()
         {
-            long polinom = Polinom;
+
+            long polinom = Convert.ToInt64(new string(Convert.ToString(Polinom, 2).ToArray()), 2) >> 1;
             for (int i = 0; i < Math.Pow(2, Power) - 1; i++)
             {
                 long bit = BitHelp.BitInt(polinom & Vector) & 1;
@@ -182,11 +183,11 @@ namespace GammaGaloisMatrix
         }
         private int PowerPolinom(long polinom) => BitHelp.BitOll(polinom) - 1;
 
-    
+
     }
     public static class BitHelp
     {
-       public static int BitOll(long value)
+        public static int BitOll(long value)
         {
             int res = 0;
             while (value != 0)
@@ -206,7 +207,6 @@ namespace GammaGaloisMatrix
                 value >>= 1;
             }
             return res;
-
         }
     }
     public class RelayCommand : ICommand
@@ -246,7 +246,14 @@ namespace GammaGaloisMatrix
 
         private List<ulong> _gamma = new List<ulong>();
         private List<ulong> _gamma1 = new List<ulong>();
-
+        private Dictionary<int, long[,]> TestPolinom = new Dictionary<int, long[,]>()
+        {
+            //{ 12, new string[] { "111" } },
+            //{ 12, new long[][] { { 7 }, { 4 } } }
+            { 12, new long[,] { { 7 }, { 4 } }}
+            //{ 12, new string[,] {{"string1.1", "string1.2"}, {"string2.1", "string2.2"}} },
+            //{ 13, new string[,] {{"string1.1", "string1.2"}, {"string2.1", "string2.2"}} } 
+        };
         public List<GammaItem> GammaTable
         {
             get
@@ -432,10 +439,16 @@ namespace GammaGaloisMatrix
                         long max = min * 2;
                         int Bits = BitHelp.BitOll(min);
                         Bits = BitHelp.BitOll((long)(Math.Pow(2, BitHelp.BitOll(min) - 1))) -2;
+                        TestPolinom.TryGetValue(Factor, out long[,] TestArray);
+                        if(TestArray == null)
+                            TestArray = new long[,] { };
+
                         while (true) 
                         {
                             long i = LongRandom(min, max);
-                            if ((BitHelp.BitInt(i) & 1) == 1)
+                                if ((i & 1) == 0)
+                                    i ^= 1;
+                            if ((BitHelp.BitInt(i) & 1) == 1 )
                             {
                                 int Res = 2;
                                 long _Res = 2;
@@ -447,6 +460,10 @@ namespace GammaGaloisMatrix
                                 }
                                 if (_Res == 1 && Res == Factor)
                                 {
+                                    for(int a = Factor/2; a > 0; a--)
+                                    {
+
+                                    }
                                     int count = 1;
                                     BigInteger res = OE;
                                     do
@@ -754,6 +771,27 @@ namespace GammaGaloisMatrix
             rnd.NextBytes(buf);
             long longRand = BitConverter.ToInt64(buf, 0);
             return (Math.Abs(longRand % (max - min)) + min);
+        }
+        private bool Criterion2(long P, long[,] testArray)
+        {          
+            for (int i = 0; i < testArray.GetLength(1); i++)
+                if (!DivFalseBool(P, testArray[i,0], testArray[1,i]))
+                    return false;
+            return true;
+        }
+        private bool DivFalseBool(long a, long b, long c)
+        {
+            while (a > c)
+            {
+                a ^= b;
+                if (a == 0)
+                    return false;
+                while ((a & 1) == 0)
+                {
+                    a >>= 1;
+                }
+            }
+            return true;
         }
         private long Div2(long a, long b, long i, int Bits)
         {
