@@ -447,8 +447,19 @@ namespace GammaGaloisMatrix
                                 }
                                 if (_Res == 1 && Res == Factor)
                                 {
-                                    PolynomialString = PolynomialString = GetOutputString(i);
-                                    break;
+                                    int count = 1;
+                                    BigInteger res = OE;
+                                    do
+                                    {
+                                        res = ModPower(OE, count, i);
+                                        count++;
+                                    }
+                                    while (res != 1);
+                                    if (count == (int)Math.Pow(2, Factor))
+                                    {
+                                        PolynomialString = GetOutputString(i);
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -570,7 +581,15 @@ namespace GammaGaloisMatrix
                             return;
                         }
                         ulong[] matrix = new ulong[Factor];
-                        matrix[0] = (ulong)OE;
+                        if (
+                            Matrix == 4 ||
+                            Matrix == 5 ||
+                            Matrix == 6 ||
+                            Matrix == 7)
+                        {
+                            matrix[0] = (ulong)ModPower(OE, new BigInteger(Math.Pow(2, Factor) - 2), Polynomial);
+                        }
+                        else matrix[0] = (ulong)OE;
                         int max = (int)(Math.Pow(2, Factor) - 1);
                         for (int i = 1; i < Factor; i++)
                         {
@@ -580,18 +599,19 @@ namespace GammaGaloisMatrix
                             matrix[i] = (ulong)a;
                         }
 
-                        if (Matrix == 1)
+                        if (Matrix == 1 || Matrix == 5)
                         {
                             matrix = TransposeMatrix(matrix.ToList()).ToArray();
                         }
-                        else if (Matrix == 2)
+                        else if (Matrix == 2 || Matrix == 6)
                         {
                             matrix = TransposeMatrixR(matrix.ToList()).ToArray();
                         }
-                        else if (Matrix == 3)
+                        else if (Matrix == 3 || Matrix == 7)
                         {
                             matrix = TransposeMatrixR(TransposeMatrix(matrix.ToList())).ToArray();
                         }
+                        
 
                         ulong vector = (ulong)VI;
                         ulong g = 0;
