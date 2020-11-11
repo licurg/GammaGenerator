@@ -259,16 +259,6 @@ namespace GammaGaloisMatrix
             }
         }
 
-        public List<short> FactorList
-        {
-            get
-            {
-                return new List<short>()
-                {
-                    8, 16
-                };
-            }
-        }
         private short _factor = 8;
         public short Factor
         {
@@ -278,7 +268,13 @@ namespace GammaGaloisMatrix
             }
             set
             {
-                _factor = value;
+                if (value < 2)
+                    _factor = 2;
+                else if (value > 16)
+                    _factor = 16;
+                else
+                    _factor = value;
+
                 OnPropertyChanged("Factor");
             }
         }
@@ -456,90 +452,6 @@ namespace GammaGaloisMatrix
                                 }
                             }
                         }
-
-                        /* CheckPolynomial:
-                         int weight = new Random().Next(3, Factor + 1);
-                         string polynomialString = "1" + new String(new String('1', weight - 2).PadLeft(Factor - 1, '0').ToCharArray().OrderBy(x => Guid.NewGuid()).ToArray()) + "1";
-                         var condition = weight > 0 ? polynomialString.Count(x => x == '1') == weight : polynomialString.Count(x => x == '1') % 2 != 0;
-                         if (!condition) goto CheckPolynomial;
-                         else
-                         {
-                             BigInteger f = BinToDec(polynomialString);
-                             BigInteger a = 0b10;
-                             BigInteger b = 0b100;
-                             int i = 2;
-
-                             var res = ModMult(a, b, f);
-                             while (res != 1 && i <= Factor)
-                             {
-                                 i += 1;
-                                 a = res;
-                                 b = res << 1;
-                                 res = ModMult(a, b, f);
-                             }
-
-                             int x = 1;
-                             int limit = (int)Math.Pow(2, Factor) - 1;
-                             BigInteger multipler = 0b10;
-                             for (; x < limit; x++)
-                             {
-                                 multipler = ModMult(multipler, 0b10, f);
-                                 if (multipler == 1)
-                                     break;
-                             }
-
-                             if ((i == Factor && res == 1) && (x == (limit - 1) && multipler == 1))
-                             {
-                                 PolynomialString = GetOutputString(f);
-                             }
-                             else goto CheckPolynomial;
-                         }*/
-                    });
-                }, command => true));
-            }
-        }
-
-        private RelayCommand _GenOE;
-        public RelayCommand GenOE
-        {
-            get
-            {
-                return _GenOE ?? (_GenOE = new RelayCommand(command => {
-                    Task.Run(() =>
-                    {
-                        BigInteger max = 6148914691236517205;
-                        if (Factor == 8)
-                        {
-                            max = 85;
-                        }
-                        if (Factor == 16)
-                        {
-                            max = 21845;
-                        }
-                        if (Factor == 32)
-                        {
-                            max = 1431655765;
-                        }
-
-                        using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
-                        {
-                            byte[] numBytes = new byte[(Factor / 8) + 1];
-                        CheckOE:
-                            rng.GetBytes(numBytes);
-                            numBytes[numBytes.Length - 1] = 0;
-
-                            BigInteger w = new BigInteger(numBytes);
-
-                            var dividers = D.TakeWhile(x => ModPower(w, x, Polynomial) != 1 && x <= max).ToList();
-                            if (dividers.Count == D.IndexOf(max) && !dividers.Contains(max))
-                            {
-                                OEString = GetOutputString(w);
-                            }
-                            else
-                            {
-                                goto CheckOE;
-                            }
-                        }
                     });
                 }, command => true));
             }
@@ -555,10 +467,12 @@ namespace GammaGaloisMatrix
                     {
                         using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
                         {
-                            byte[] numBytes = new byte[(Factor / 8) + 1];
+                            int byteLength = (Factor < 8) ? 2 : ((Factor / 8) + 1);
+                            byte[] numBytes = new byte[byteLength];
                             rng.GetBytes(numBytes);
                             numBytes[numBytes.Length - 1] = 0;
-                            VIString = GetOutputString(new BigInteger(numBytes));
+                            BigInteger vi = new BigInteger(numBytes) % new BigInteger(Math.Pow(2, Factor));
+                            VIString = GetOutputString(vi < 1 ? 1 : vi);
                         }
                     });
                 }, command => true));
@@ -586,7 +500,47 @@ namespace GammaGaloisMatrix
                             case "F*":
                                 Matrix = 3;
                                 break;
+                            case "Ḡ":
+                                Matrix = 4;
+                                break;
+                            case "F̄":
+                                Matrix = 5;
+                                break;
+                            case "Ḡ*":
+                                Matrix = 6;
+                                break;
+                            case "F̄*":
+                                Matrix = 7;
+                                break;
                         }
+                    });
+                }, command => true));
+            }
+        }
+
+        private RelayCommand _IncrFactor;
+        public RelayCommand IncrFactor
+        {
+            get
+            {
+                return _IncrFactor ?? (_IncrFactor = new RelayCommand(command => {
+                    Task.Run(() =>
+                    {
+                        Factor++;
+                    });
+                }, command => true));
+            }
+        }
+
+        private RelayCommand _DecrFactor;
+        public RelayCommand DecrFactor
+        {
+            get
+            {
+                return _DecrFactor ?? (_DecrFactor = new RelayCommand(command => {
+                    Task.Run(() =>
+                    {
+                        Factor--;
                     });
                 }, command => true));
             }
@@ -617,19 +571,7 @@ namespace GammaGaloisMatrix
                         }
                         ulong[] matrix = new ulong[Factor];
                         matrix[0] = (ulong)OE;
-                        ulong max = 0xFFFFFFFFFFFFFFFF;
-                        if (Factor == 32)
-                        {
-                            max = 0xFFFFFFFF;
-                        }
-                        if (Factor == 16)
-                        {
-                            max = 0xFFFF;
-                        }
-                        if (Factor == 8)
-                        {
-                            max = 0xFF;
-                        }
+                        int max = (int)(Math.Pow(2, Factor) - 1);
                         for (int i = 1; i < Factor; i++)
                         {
                             BigInteger a = matrix[i - 1] << 1;

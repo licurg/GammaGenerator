@@ -67,7 +67,12 @@
             </Grid.RowDefinitions>
             <WrapPanel Grid.Row="0" Margin="5">
                 <Label VerticalAlignment="Center" Content="Степень:" FontWeight="Bold"/>
-                <ComboBox Width="80" VerticalAlignment="Center" Margin="5,0" SelectedItem="{Binding Factor}" ItemsSource="{Binding FactorList, Mode=OneWay}"/>
+                <WrapPanel Margin="5,0" VerticalAlignment="Center">
+                    <Button Width="20" Height="20" Content="-" Command="{Binding DecrFactor}"/>
+                    <TextBox Width="40" Height="20" TextAlignment="Center" VerticalContentAlignment="Center" Text="{Binding Factor, Mode=TwoWay}"/>
+                    <Button Width="20" Height="20" Content="+" Command="{Binding IncrFactor}"/>
+                </WrapPanel>
+                <!--<ComboBox Width="80" VerticalAlignment="Center" Margin="5,0" SelectedItem="{Binding Factor}" ItemsSource="{Binding FactorList, Mode=OneWay}"/>-->
                 <Label VerticalAlignment="Center" Content="Система счисления:" FontWeight="Bold"/>
                 <ComboBox Width="80" VerticalAlignment="Center" Margin="5,0" SelectedItem="{Binding CS}" ItemsSource="{Binding CSList, Mode=OneWay}"/>
             </WrapPanel>
